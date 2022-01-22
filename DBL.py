@@ -2,17 +2,22 @@ from mss.darwin import MSS as mss
 import mss.tools
 import time
 import numpy as np
-from pynput import keyboard
-import keyboard
 from PIL import Image
 import cv2
 import multiprocessing
 from multiprocessing import Process, Queue
 import os
+import keyboard
 
+#Misc
 start_time = time.time()
 region = {"top": 225, "left": 1200, "width": 400, "height": 750}
 output = os.path.dirname(__file__) + "/screens/sample.png"
+
+#Controls
+Escape = keyboard.is_pressed("esc")
+RDash = keyboard.press_and_release("left")
+LDash = keyboard.press_and_release("right")
 
 #Workers
 def grab(queue):
@@ -43,7 +48,7 @@ def debug(counter, frame_counter, ShowFPS):
     return message
 
 #Main
-def main(ToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
+def main(SaveToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
     looperino = 1
     counter = 0
     frame_counter = 0
@@ -53,7 +58,7 @@ def main(ToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
             frame_counter += 1
             while not Multiprocessing:
                 img = sct.grab(region)
-                if ToPng:
+                if SaveToPng:
                     mss.tools.to_png(img.rgb, img.size, output=output)
                 break
 
@@ -62,7 +67,7 @@ def main(ToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
                     queue = Queue()
 
                     Process(target=grab, args=(queue,)).start()
-                    if ToPng:
+                    if SaveToPng:
                         Process(target=save, args=(queue,)).start()
                     time.sleep(1)
                 break
@@ -72,10 +77,11 @@ def main(ToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
 
             if RunOnce:
                 looperino -= 1
-# def print_pressed_keys():
-# 	line = ', '.join(str(code) for code in keyboard._pressed_events)
-# 	print('\r' + line + ' ' * 40, end='')
 
-main(ToPng = True, Multiprocessing = False, Debug = False, ShowFPS = False, RunOnce = False)
-# keyboard.hook(print_pressed_keys)
-# keyboard.wait()
+            if Escape:
+                print("You pressed Escape, stopping...")
+                looperino -= 1
+
+main(   SaveToPng = True, Multiprocessing = False, Debug = False,
+        ShowFPS = False, RunOnce = False
+    )
