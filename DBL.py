@@ -12,7 +12,7 @@ import keyboard
 #Misc
 start_time = time.time()
 region = {"top": 225, "left": 1200, "width": 400, "height": 750}
-output = os.path.dirname(__file__) + "/screens/sample.png"
+output = os.path.dirname(__file__) + "/images/screen.png"
 
 #Controls
 Escape = keyboard.is_pressed("esc")
