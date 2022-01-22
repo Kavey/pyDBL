@@ -30,6 +30,9 @@ def save(queue):
 
 #Utils
 def debug(counter, frame_counter, ShowFPS):
+    # img_array = np.array(img)
+    # imgImage = Image.fromarray(img_array)
+    # cv2imShow = cv2.imshow('', img_array)
     end_time = time.time()
     fps = frame_counter / float(end_time - start_time)
     message = "Counter: %s" %(counter)
@@ -65,9 +68,6 @@ def main(ToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
                 break
 
             if Debug:
-                img_array = np.array(img)
-                imgImage = Image.fromarray(img_array)
-                cv2imShow = cv2.imshow('', img_array)
                 debug(counter, frame_counter, ShowFPS)
 
             if RunOnce:
