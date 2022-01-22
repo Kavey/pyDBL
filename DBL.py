@@ -4,7 +4,6 @@ import time
 import numpy as np
 from PIL import Image
 import cv2
-import multiprocessing
 from multiprocessing import Process, Queue
 import os
 import keyboard
@@ -15,9 +14,20 @@ region = {"top": 225, "left": 1200, "width": 400, "height": 750}
 output = os.path.dirname(__file__) + "/images/screen.png"
 
 #Controls
-Escape = keyboard.is_pressed("esc")
-RDash = keyboard.press_and_release("left")
-LDash = keyboard.press_and_release("right")
+# Space = keyboard.press_and_release("space")
+# Escape = keyboard.is_pressed("esc")
+# RDash = keyboard.press_and_release("left")
+# LDash = keyboard.press_and_release("right")
+# ACARD = keyboard.press_and_release(12)
+# ZCard = keyboard.press_and_release(13)
+# ECard = keyboard.press_and_release(14)
+# RCard = keyboard.press_and_release(15)
+# Swap1 = keyboard.press_and_release(18)
+# Swap2 = keyboard.press_and_release(19)
+# Spell = keyboard.press_and_release(20)
+# RRush = keyboard.press_and_release("f") //NOTOK
+
+#Screens
 
 #Workers
 def grab(queue):
@@ -41,14 +51,30 @@ def debug(counter, frame_counter, ShowFPS):
     end_time = time.time()
     fps = frame_counter / float(end_time - start_time)
     message = "Counter: %s" %(counter)
+
+    ###Debug###
+    ###Debug###
+
     if ShowFPS:
-        message = print("FPS: ", fps, " --- ", message)
+        message = print(message, " --- ", "FPS: ", fps)
     if not ShowFPS:
         message = print(message)
     return message
 
+#Block manual inputs
+def block_inputs():
+    if keyboard.is_pressed("space"):
+        keyboard.block_key("space")
+    if keyboard.is_pressed("left"):
+        keyboard.block_key("left")
+    if keyboard.is_pressed("right"):
+        keyboard.block_key("right")
+#Rotation
+def rotation():
+    block_inputs()
+
 #Main
-def main(SaveToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
+def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
     looperino = 1
     counter = 0
     frame_counter = 0
@@ -72,16 +98,15 @@ def main(SaveToPng, Multiprocessing, ShowFPS, Debug, RunOnce):
                     time.sleep(1)
                 break
 
+            rotation()
+
             if Debug:
                 debug(counter, frame_counter, ShowFPS)
-
             if RunOnce:
                 looperino -= 1
-
-            if Escape:
+            if keyboard.is_pressed("esc"):
                 print("You pressed Escape, stopping...")
                 looperino -= 1
 
-main(   SaveToPng = True, Multiprocessing = False, Debug = False,
-        ShowFPS = False, RunOnce = False
-    )
+main(   Multiprocessing = False, SaveToPng = False,
+        ShowFPS = False, Debug = False, RunOnce = False)
