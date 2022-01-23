@@ -78,7 +78,7 @@ def block_inputs():
 
 #Rotation
 def rotation(screen):
-    block_inputs()
+    # block_inputs()
     pressAndRelease("right")
 
     # Screenshot = cv2.imread(screenshot)
