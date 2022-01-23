@@ -1,17 +1,17 @@
 from mss.darwin import MSS as mss
 import mss.tools
 import time
-import numpy as np
-from PIL import Image
-import cv2
 from multiprocessing import Process, Queue
 import os
 import keyboard
+import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
+import cv2
 
 #Misc
 start_time = time.time()
 region = {"top": 225, "left": 1200, "width": 400, "height": 750}
-output = os.path.dirname(__file__) + "/images/screen.png"
 
 #Controls
 # Space = keyboard.press_and_release("space")
@@ -28,6 +28,8 @@ output = os.path.dirname(__file__) + "/images/screen.png"
 # RRush = keyboard.press_and_release("f") //NOTOK
 
 #Screens
+screenshot = os.path.dirname(__file__) + "/images/screen.png"
+alert = os.path.dirname(__file__) + "/images/alert.png"
 
 #Workers
 def grab(queue):
@@ -41,9 +43,13 @@ def save(queue):
     if img is None:
         return
 
-    mss.tools.to_png(img.rgb, img.size, output=output)
+    mss.tools.to_png(img.rgb, img.size, output=screenshot)
 
 #Utils
+def pressAndRelease(key):
+    keyboard.press(key)
+    keyboard.release(key)
+
 def debug(counter, frame_counter, ShowFPS):
     # img_array = np.array(img)
     # imgImage = Image.fromarray(img_array)
@@ -69,9 +75,20 @@ def block_inputs():
         keyboard.block_key("left")
     if keyboard.is_pressed("right"):
         keyboard.block_key("right")
+
 #Rotation
-def rotation():
+def rotation(screen):
     block_inputs()
+    pressAndRelease("right")
+
+    # Screenshot = cv2.imread(screenshot)
+    # dodgeAlert = cv2.imread(alert)
+    # res = cv2.matchTemplate(Screenshot, dodgeAlert, cv2.TM_CCOEFF_NORMED)
+    # threshold = .8
+    # loc = np.where(res >= threshold)
+    # for i in zip(*loc[::-1]):
+    #     print('DODGING!')
+    #     pressAndRelease("right")
 
 #Main
 def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
@@ -83,9 +100,9 @@ def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
             counter = counter + 1
             frame_counter += 1
             while not Multiprocessing:
-                img = sct.grab(region)
+                screen = sct.grab(region)
                 if SaveToPng:
-                    mss.tools.to_png(img.rgb, img.size, output=output)
+                    mss.tools.to_png(screen.rgb, screen.size, output=screenshot)
                 break
 
             while Multiprocessing:
@@ -98,7 +115,7 @@ def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
                     time.sleep(1)
                 break
 
-            rotation()
+            rotation(screen)
 
             if Debug:
                 debug(counter, frame_counter, ShowFPS)
@@ -108,5 +125,5 @@ def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
                 print("You pressed Escape, stopping...")
                 looperino -= 1
 
-main(   Multiprocessing = False, SaveToPng = False,
+main(   Multiprocessing = False, SaveToPng = True,
         ShowFPS = False, Debug = False, RunOnce = False)
