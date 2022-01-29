@@ -9,10 +9,14 @@ from PIL import Image
 import numpy as np
 import cv2
 import sys
+from AppKit import NSWorkspace
 
 #Misc
 start_time = time.time()
 region = {"top": 225, "left": 1200, "width": 400, "height": 750}
+active_window = (NSWorkspace.sharedWorkspace()
+                        .activeApplication()["NSApplicationName"])
+window_name = "DB LEGENDS"
 
 #Controls
 # Space = keyboard.press_and_release("space")
@@ -54,6 +58,11 @@ def getPixel(screen, key, xaxis, yaxis, r, g, b):
         if detected == 1:
             break
 
+def getActiveWindow():
+    active_window_name = (NSWorkspace.sharedWorkspace()
+                              .activeApplication()['NSApplicationName'])
+    return active_window_name
+
 def debug(counter, frame_counter, ShowFPS):
     # img_array = np.array(img)
     # imgImage = Image.fromarray(img_array)
@@ -61,9 +70,6 @@ def debug(counter, frame_counter, ShowFPS):
     end_time = time.time()
     fps = frame_counter / float(end_time - start_time)
     message = "Counter: %s" %(counter)
-
-    ###Debug###
-    ###Debug###
 
     if ShowFPS:
         message = print(message, " --- ", "FPS: ", fps)
@@ -95,44 +101,34 @@ def rotation(screen):
     block_inputs()
 
 #Main Pixel
-def mainPixel(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
+def mainPixel(Multiprocessing, SaveToPng, ShowFPS, Debug):
     counter = 0
     frame_counter = 0
-    looperino = 1
-    while looperino > 0:
-        with mss.mss() as sct:
-            counter = counter + 1
-            frame_counter += 1
-            screen = sct.grab(region)
+    with mss.mss() as sct:
+        counter = counter + 1
+        frame_counter += 1
+        screen = sct.grab(region)
 
-            # print(np.array(screen))
-            while not Multiprocessing:
-                if SaveToPng:
-                    mss.tools.to_png(screen.rgb, screen.size, output=screenshot)
-                break
+        # print(np.array(screen))
+        while not Multiprocessing:
+            if SaveToPng:
+                mss.tools.to_png(screen.rgb, screen.size, output=screenshot)
+            break
 
-            # rotation()
+        # rotation()
 
-            if Debug:
-                debug(counter, frame_counter, ShowFPS)
-            if RunOnce:
-                looperino -= 1
-            if keyboard.is_pressed("esc"):
-                print("You pressed Escape, stopping...")
-                looperino -= 1
+        if Debug:
+            debug(counter, frame_counter, ShowFPS)
 
 #Main Memory
 def mainMemory():
-    looperino = 1
-    while looperino > 0:
-        print("Memory stuff...")
-        looperino -= 1
+    print("Memory stuff...")
 
 #Runner
 def main(isPixel, isMemory):
     if isPixel:
         mainPixel(  Multiprocessing = False, SaveToPng = True,
-            ShowFPS = True, Debug = True, RunOnce = False)
+                    ShowFPS = True, Debug = True)
 
     if isMemory:
         mainMemory()
@@ -142,9 +138,21 @@ if __name__ == '__main__':
         print("Usage: sudo python %s -pixel OR -memory" % sys.argv[0])
         exit()
 
-    for argument in sys.argv:
-        if argument == "-pixel":
-            main(True, False)
+    looperino = 1
+    while looperino > 0:
+        for argument in sys.argv:
+            while getActiveWindow() == window_name:
+                if argument == "-pixel":
+                    main(True, False)
+                    continue
 
-        if argument == "-memory":
-            main(False, True)
+                if argument == "-memory":
+                    main(False, True)
+                    continue
+
+            while getActiveWindow() != window_name:
+                print("Pause: DBL is running in the background.")
+
+    # if keyboard.is_pressed("esc"):
+    #     print("You pressed Escape, stopping...")
+    #     looperino -= 1
