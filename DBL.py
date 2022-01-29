@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 import cv2
+import sys
 
 #Misc
 start_time = time.time()
@@ -31,24 +32,27 @@ region = {"top": 225, "left": 1200, "width": 400, "height": 750}
 screenshot = os.path.dirname(__file__) + "/images/screen.png"
 alert = os.path.dirname(__file__) + "/images/alert.png"
 
-#Workers
-def grab(queue):
-    with mss.mss() as sct:
-        queue.put(sct.grab(region))
-
-    queue.put(None)
-
-def save(queue):
-    img = queue.get()
-    if img is None:
-        return
-
-    mss.tools.to_png(img.rgb, img.size, output=screenshot)
-
 #Utils
 def pressAndRelease(key):
     keyboard.press(key)
     keyboard.release(key)
+
+def getPixel(screen, key, xaxis, yaxis, r, g, b):
+    width, height = screen.size
+
+    for xaxis in range(0, width, 5):
+        for yaxis in range(0, height, 5):
+
+            r, g, b = screen.getpixel((xaxis, yaxis))
+
+            if r == r and g == g and b == b:
+                detected = 1
+                pressAndRelease(key)
+                print("same color")
+                break
+
+        if detected == 1:
+            break
 
 def debug(counter, frame_counter, ShowFPS):
     # img_array = np.array(img)
@@ -78,10 +82,9 @@ def block_inputs():
 
 #Rotation
 def rotation(screen):
-    # block_inputs()
-    pressAndRelease("right")
+    # pressAndRelease("right")
 
-    # Screenshot = cv2.imread(screenshot)
+    # Screenshot = cv2.imread(screen)
     # dodgeAlert = cv2.imread(alert)
     # res = cv2.matchTemplate(Screenshot, dodgeAlert, cv2.TM_CCOEFF_NORMED)
     # threshold = .8
@@ -89,33 +92,26 @@ def rotation(screen):
     # for i in zip(*loc[::-1]):
     #     print('DODGING!')
     #     pressAndRelease("right")
+    block_inputs()
 
-#Main
-def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
-    looperino = 1
+#Main Pixel
+def mainPixel(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
     counter = 0
     frame_counter = 0
-    with mss.mss() as sct:
-        while looperino > 0:
+    looperino = 1
+    while looperino > 0:
+        with mss.mss() as sct:
             counter = counter + 1
             frame_counter += 1
+            screen = sct.grab(region)
+
+            # print(np.array(screen))
             while not Multiprocessing:
-                screen = sct.grab(region)
                 if SaveToPng:
                     mss.tools.to_png(screen.rgb, screen.size, output=screenshot)
                 break
 
-            while Multiprocessing:
-                if __name__ == "__main__":
-                    queue = Queue()
-
-                    Process(target=grab, args=(queue,)).start()
-                    if SaveToPng:
-                        Process(target=save, args=(queue,)).start()
-                    time.sleep(1)
-                break
-
-            rotation(screen)
+            # rotation()
 
             if Debug:
                 debug(counter, frame_counter, ShowFPS)
@@ -125,5 +121,30 @@ def main(Multiprocessing, SaveToPng, ShowFPS, Debug, RunOnce):
                 print("You pressed Escape, stopping...")
                 looperino -= 1
 
-main(   Multiprocessing = False, SaveToPng = True,
-        ShowFPS = False, Debug = False, RunOnce = False)
+#Main Memory
+def mainMemory():
+    looperino = 1
+    while looperino > 0:
+        print("Memory stuff...")
+        looperino -= 1
+
+#Runner
+def main(isPixel, isMemory):
+    if isPixel:
+        mainPixel(  Multiprocessing = False, SaveToPng = True,
+            ShowFPS = True, Debug = True, RunOnce = False)
+
+    if isMemory:
+        mainMemory()
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print("Usage: sudo python %s -pixel OR -memory" % sys.argv[0])
+        exit()
+
+    for argument in sys.argv:
+        if argument == "-pixel":
+            main(True, False)
+
+        if argument == "-memory":
+            main(False, True)
